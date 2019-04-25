@@ -1,0 +1,70 @@
+import javafx.scene.control.Button;
+import java.io.FileNotFoundException;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
+import javafx.stage.Stage;
+import javafx.scene.paint.Color;
+import javafx.scene.layout.BorderPane;
+
+public class HangmanGUI extends Application
+{
+	@Override
+	public void start(Stage primaryStage) throws FileNotFoundException
+	{	
+		java.io.File file = new java.io.File("hangman.txt");
+		if (!file.exists())
+		{
+			System.out.println("File does not exist!");
+			System.exit(0);
+		}
+		
+		BorderPane pane = new BorderPane();
+		pane.setBottom(getHBox());
+		
+		Scene scene = new Scene(pane, 900, 500);
+		primaryStage.setTitle("Hangman");
+		primaryStage.setScene(scene);
+		primaryStage.show();
+	}
+		
+		private HBox getHBox()
+		{
+			HBox Buttons = new HBox(11);
+		
+			Button btA = new Button("A"); 
+			Button btB = new Button("B");
+			Button btC = new Button("C");
+			Button btD = new Button("D");
+			Button btE = new Button("E");
+			Button btF = new Button("F");
+			Button btG = new Button("G");
+			Button btH = new Button("H");
+			Button btI = new Button("I");
+			Button btJ = new Button("J");
+			Button btK = new Button("K");
+			Button btL = new Button("L");
+			Button btM = new Button("M");
+			Button btN = new Button("N");
+			Button btO = new Button("O");
+			Button btP = new Button("P");
+			Button btQ = new Button("Q");
+			Button btR = new Button("R");
+			Button btS = new Button("S");
+			Button btT = new Button("T");
+			Button btU = new Button("U");
+			Button btV = new Button("V");
+			Button btW = new Button("W");
+			Button btX = new Button("X");
+			Button btY = new Button("Y");
+			Button btZ = new Button("Z");
+			
+			Buttons.getChildren().addAll(btA, btB, btC, btD, btE, btF, btG, btH, btI, btJ, btK, btL, btM, btN, btO, btP, btQ, btR, btS, btT, btU,btV, btW, btX, btY, btZ);
+			return Buttons;
+		}
+	}
