@@ -1,16 +1,18 @@
 import javafx.scene.control.Button;
 import java.io.FileNotFoundException;
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.control.Label;
 
 public class HangmanGUI extends Application
 {
@@ -24,15 +26,20 @@ public class HangmanGUI extends Application
 			System.exit(0);
 		}
 		
-		BorderPane pane = new BorderPane();
-		pane.setBottom(getHBox());
+		BorderPane basepane = new BorderPane();
+		basepane.setBottom(getHBox());
+		basepane.setRight(new LinePane());
 		
-		Scene scene = new Scene(pane, 900, 500);
+		Label phrase = new Label("Randy is the best");
+		phrase.setFont(Font.font("Times New Roman", FontWeight.BOLD, FontPosture.ITALIC, 20));
+		basepane.setCenter(phrase);
+	
+		Scene scene = new Scene(basepane, 900, 500);
 		primaryStage.setTitle("Hangman");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-		
+/********************************************************************BUTTONS DISPLAY*******************************************************************/
 		private HBox getHBox()
 		{
 			HBox Buttons = new HBox(11);
@@ -64,7 +71,68 @@ public class HangmanGUI extends Application
 			Button btY = new Button("Y");
 			Button btZ = new Button("Z");
 			
-			Buttons.getChildren().addAll(btA, btB, btC, btD, btE, btF, btG, btH, btI, btJ, btK, btL, btM, btN, btO, btP, btQ, btR, btS, btT, btU,btV, btW, btX, btY, btZ);
+			Buttons.getChildren().addAll(btA, btB, btC, btD, btE, btF, btG, btH, btI, btJ, btK, btL, btM, btN, btO, btP, btQ, btR, btS, btT, btU,btV, btW, 
+					btX, btY, btZ);
 			return Buttons;
 		}
 	}
+
+/******************************************************HANGMAN BODY AND GALLOWS*************************************************************/
+class LinePane extends Pane
+{
+	public LinePane()
+	{
+		Line base = new Line (100, 450, -150, 450);
+		base.setStrokeWidth(1);
+		base.setStroke(Color.BLACK);
+		getChildren().add(base);
+		
+		Line pole = new Line(-25, 450, -25, 50);
+		pole.setStrokeWidth(1);
+		pole.setStroke(Color.BLUE);
+		getChildren().add(pole);
+		
+		Line beam = new Line(-25, 50, 150, 50);
+		beam.setStrokeWidth(1);
+		beam.setStroke(Color.GREEN);
+		getChildren().add(beam);
+		
+		Line rope = new Line(150, 50, 150, 100);
+		rope.setStrokeWidth(1);
+		rope.setStroke(Color.RED);
+		getChildren().add(rope);
+		
+		Circle head = new Circle();
+		head.setCenterX(150);
+		head.setCenterY(125);
+		head.setRadius(35);
+		head.setStroke(Color.BLACK);
+		head.setFill(Color.WHITE);
+		getChildren().add(head);
+		
+		Line body = new Line(150, 160, 150, 350);
+		body.setStrokeWidth(1);
+		body.setStroke(Color.PURPLE);
+		getChildren().add(body);
+		
+		Line rightarm = new Line(150, 225, 225, 175);
+		rightarm.setStrokeWidth(1);
+		rightarm.setStroke(Color.CYAN);
+		getChildren().add(rightarm);
+		
+		Line leftarm = new Line(150, 225, 75, 175);
+		leftarm.setStrokeWidth(1);
+		leftarm.setStroke(Color.MAGENTA);
+		getChildren().add(leftarm);
+		
+		Line rightleg = new Line(150, 350, 225, 400);
+		rightleg.setStrokeWidth(1);
+		rightleg.setStroke(Color.PINK);
+		getChildren().add(rightleg);
+		
+		Line leftleg = new Line(150, 350, 75, 400);
+		leftleg.setStrokeWidth(1);
+		leftleg.setStroke(Color.ORANGE);
+		getChildren().add(leftleg);
+	}
+}
