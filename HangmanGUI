@@ -1,4 +1,7 @@
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
@@ -6,7 +9,7 @@ import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.scene.text.Font;
@@ -21,15 +24,44 @@ import javafx.event.ActionEvent;
 public class HangmanGUI extends Application
 {
 	public static int guessCount = 0;
+	static double gameWon = 0;
+	static double gamePlayed = 0;
+	static BorderPane basePane = new BorderPane();
+	static Text gamesWon;
+	static Text gamesPlayed;
+	static Text gamesWonPercentage;
 	int randomWord;
 	int count;
 	int wordLength;
 	boolean found = false;
-	BorderPane basePane;
+	char guess;
 	Text wordOnScreen;
 	Text wrongGuesses = new Text();
+	Text youWin;
+	Text youLose;
+	Text answer;
 	String[] words;
 	StringBuilder wordDisplay;
+	VBox leftBorderPane = new VBox();
+	VBox rightBorderPane = new VBox();
+	Button buttonPressed;
+	Line pole;
+	Line base;
+	Line beam;
+	Line rope;
+	Line body;
+	Line rightArm;
+	Line leftArm;
+	Line rightLeg;
+	Line leftLeg;
+	Circle head;
+	
+	Button btA = new Button("A"); Button btG = new Button("G"); Button btM = new Button("M"); Button btS = new Button("S"); Button btY = new Button("Y");
+	Button btB = new Button("B"); Button btH = new Button("H"); Button btN = new Button("N"); Button btT = new Button("T"); Button btZ = new Button("Z");
+	Button btC = new Button("C"); Button btI = new Button("I"); Button btO = new Button("O"); Button btU = new Button("U"); Button quit = new Button("Quit");
+	Button btD = new Button("D"); Button btJ = new Button("J"); Button btP = new Button("P"); Button btV = new Button("V"); Button replay = new Button("Start New Game");
+	Button btE = new Button("E"); Button btK = new Button("K"); Button btQ = new Button("Q"); Button btW = new Button("W");
+	Button btF = new Button("F"); Button btL = new Button("L"); Button btR = new Button("R"); Button btX = new Button("X");
 	
 	@Override
 	public void start(Stage primaryStage) throws FileNotFoundException
@@ -37,7 +69,6 @@ public class HangmanGUI extends Application
 		java.io.File file = new java.io.File("hangman.txt");
 		if (!file.exists())
 		{
-			System.out.println("File does not exist!");
 			System.exit(0);
 		}
 		Scanner inputfile = new Scanner(file);
@@ -58,51 +89,107 @@ public class HangmanGUI extends Application
 		}
 		inputfile.close();
 		
-		
-		basePane = new BorderPane();
 		basePane.setBottom(getHBox());
-		basePane.setRight(new LinePane());
+		basePane.setLeft(leftBorderPane);
+		basePane.setRight(rightBorderPane);
 		
-		randomWord = (int)(Math.random() * words.length-1);
+		rightBorderPane.getChildren().addAll(replay, quit);
+		rightBorderPane.setAlignment(Pos.TOP_RIGHT);
+		rightBorderPane.setSpacing(5);
+		
+		quit.setOnAction((ActionEvent e) ->
+		{
+			System.exit(0);
+		});
+		
+		randomWord = (int)(Math.random() * words.length);
 		wordLength = words[randomWord].length();
+		words[randomWord] = words[randomWord].toUpperCase();
 		wordDisplay = new StringBuilder();
-		for (int i = 0; i <= wordLength - 1; i++)
+		for (int i = 0; i < wordLength; i++)
 		{
 			(wordDisplay).insert(0, '*');
 		}
 		wordDisplay.toString();
 		
-		wordOnScreen = new Text(100, 100, "Guess a letter in the word: " + wordDisplay);
+		wordOnScreen = new Text(200, 200, "         Guess a letter in the word: " + wordDisplay);
 		wordOnScreen.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
-		basePane.setCenter(wordOnScreen);
+		leftBorderPane.getChildren().addAll(wordOnScreen);
+		leftBorderPane.setAlignment(Pos.BOTTOM_LEFT);
 		
 		wrongGuesses = new Text(20, 450, "Number of Wrong Guess(es): " + guessCount);
 		wrongGuesses.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
-		basePane.getChildren().addAll(wrongGuesses);
+		leftBorderPane.getChildren().addAll(wrongGuesses);
+		leftBorderPane.setSpacing(200);
 		
+		gamesPlayed = new Text(10, 40, "Number of Games Played: " + gamePlayed);
+		gamesPlayed.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
+		basePane.getChildren().addAll(gamesPlayed);
+
+		gamesWon = new Text(10, 65, "Number of Games Won: " + gameWon);
+		gamesWon.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
+		basePane.getChildren().addAll(gamesWon);
+		
+		if (gamePlayed >= 1) 
 		{
-			if(guessCount == 9)
-			{
-				Text youLose = new Text(30, 300, "You have lost, Winter Has Come!");
-				youLose.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 50));
-				Text answer = new Text(50, 350, "This was the word: " + words[randomWord]);
-				answer.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
-				youLose.setFill(Color.SKYBLUE);
-				basePane.getChildren().addAll(youLose, answer);
-			}
-			
+			gamesWonPercentage = new Text(10, 15, "Percentage of Games Won: " + (gameWon / gamePlayed));
+			gamesWonPercentage.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
+			basePane.getChildren().addAll(gamesWonPercentage);
 		}
-	
+		else if (gamePlayed <= 1)
+		{
+			gamesWonPercentage = new Text(10, 15, "Percentage of Games Won: 0");
+			gamesWonPercentage.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
+			basePane.getChildren().addAll(gamesWonPercentage);
+		}
+		
+		replay.setOnAction((ActionEvent e) ->
+		{
+			guessCount = 0;
+			randomWord = (int)(Math.random() * words.length);
+			wordLength = words[randomWord].length();
+			words[randomWord] = words[randomWord].toUpperCase();
+			wordDisplay = new StringBuilder();
+			for (int i = 0; i < wordLength; i++)
+			{
+				(wordDisplay).insert(0, '*');
+			}
+			wordDisplay.toString();
+			
+			wordOnScreen.setText("         Guess a letter in the word: " + wordDisplay);
+			wrongGuesses.setText("Number of Wrong Guess(es): " + guessCount);
+			
+			basePane.getChildren().removeAll(youLose, youWin, answer);
+			basePane.getChildren().removeAll(base, pole, beam, rope, head, body, rightArm, leftArm, rightLeg, leftLeg);
+			
+			btA.setDisable(false); btG.setDisable(false); btM.setDisable(false); btS.setDisable(false); btY.setDisable(false);
+			btB.setDisable(false); btH.setDisable(false); btN.setDisable(false); btT.setDisable(false); btZ.setDisable(false);
+			btC.setDisable(false); btI.setDisable(false); btO.setDisable(false); btU.setDisable(false);
+			btD.setDisable(false); btJ.setDisable(false); btP.setDisable(false); btV.setDisable(false); 
+			btE.setDisable(false); btK.setDisable(false); btQ.setDisable(false); btW.setDisable(false);
+			btF.setDisable(false); btL.setDisable(false); btR.setDisable(false); btX.setDisable(false);
+			
+			btA.setStyle("-fx-background-color: #ffffff"); btJ.setStyle("-fx-background-color: #ffffff"); btS.setStyle("-fx-background-color: #ffffff");
+			btB.setStyle("-fx-background-color: #ffffff"); btK.setStyle("-fx-background-color: #ffffff"); btT.setStyle("-fx-background-color: #ffffff");
+			btC.setStyle("-fx-background-color: #ffffff"); btL.setStyle("-fx-background-color: #ffffff"); btU.setStyle("-fx-background-color: #ffffff");
+			btD.setStyle("-fx-background-color: #ffffff"); btM.setStyle("-fx-background-color: #ffffff"); btV.setStyle("-fx-background-color: #ffffff");
+			btE.setStyle("-fx-background-color: #ffffff"); btN.setStyle("-fx-background-color: #ffffff"); btW.setStyle("-fx-background-color: #ffffff");
+			btF.setStyle("-fx-background-color: #ffffff"); btO.setStyle("-fx-background-color: #ffffff"); btX.setStyle("-fx-background-color: #ffffff");
+			btG.setStyle("-fx-background-color: #ffffff"); btP.setStyle("-fx-background-color: #ffffff"); btY.setStyle("-fx-background-color: #ffffff");
+			btH.setStyle("-fx-background-color: #ffffff"); btQ.setStyle("-fx-background-color: #ffffff"); btZ.setStyle("-fx-background-color: #ffffff");
+			btI.setStyle("-fx-background-color: #ffffff"); btR.setStyle("-fx-background-color: #ffffff");
+		});
+		
 		Scene scene = new Scene(basePane, 900, 500);
 		primaryStage.setTitle("Hangman");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-
+	
 	public void handleButtonClick(ActionEvent e)
 	{
-		Button buttonPressed = ((Button) e.getSource());
-		char guess = (buttonPressed.getText().charAt(0));
+		buttonPressed = ((Button) e.getSource());
+		guess = (buttonPressed.getText().charAt(0));
 		found = false;
 		for (int i = 0; i <= wordLength - 1; i++)
 		{
@@ -110,229 +197,298 @@ public class HangmanGUI extends Application
 			{
 				wordDisplay.replace(i, i + 1, buttonPressed.getText());
 				found = true;
-				System.out.println(guess + " is in the word");
+				buttonPressed.setDisable(true);
+				buttonPressed.setStyle("-fx-background-color: #00ff00");
 			}
 		} 
 		if (!found)
 		{
-			System.out.println(guess + " is not in the word.");
 			guessCount++;
-			if(guessCount == 9)
+			buttonPressed.setDisable(true);
+			buttonPressed.setStyle("-fx-background-color: #ff0000");
+			if(guessCount == 10)
 			{
-				System.out.println("You have lost the game!");
-				System.out.println("The word was " + words[randomWord]);
+				btA.setDisable(true); btG.setDisable(true); btM.setDisable(true); btS.setDisable(true); btY.setDisable(true);
+				btB.setDisable(true); btH.setDisable(true); btN.setDisable(true); btT.setDisable(true); btZ.setDisable(true);
+				btC.setDisable(true); btI.setDisable(true); btO.setDisable(true); btU.setDisable(true);
+				btD.setDisable(true); btJ.setDisable(true); btP.setDisable(true); btV.setDisable(true); 
+				btE.setDisable(true); btK.setDisable(true); btQ.setDisable(true); btW.setDisable(true);
+				btF.setDisable(true); btL.setDisable(true); btR.setDisable(true); btX.setDisable(true);
+				
+				youLose = new Text(30, 300, "You have lost!");
+				youLose.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 50));
+				
+				answer = new Text(50, 350, "This was the word: " + words[randomWord]);
+				answer.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
+				youLose.setFill(Color.SKYBLUE);
+				basePane.getChildren().addAll(youLose, answer);
+				
+				gamePlayed++;
+				gamesPlayed.setText("Number of Games Played: " + gamePlayed);
+				
+				if (gamePlayed >= 1) 
+				{
+					gamesWonPercentage.setText("Percentage of Games Won: " + (gameWon / gamePlayed) * 100 + "%");
+				}
+				else if (gamePlayed <= 1)
+				{
+					gamesWonPercentage.setText("Percentage of Games Won: 0");
+				}
 			}
 		}
-		wordOnScreen = new Text(100, 100, "Guess a letter in the word: " + wordDisplay);
-		wordOnScreen.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
-		basePane.setCenter(wordOnScreen);
+		String correctWord = new String(wordDisplay.toString());
+		if(correctWord.equals(words[randomWord]))
+		{
+			btA.setDisable(true); btG.setDisable(true); btM.setDisable(true); btS.setDisable(true); btY.setDisable(true);
+			btB.setDisable(true); btH.setDisable(true); btN.setDisable(true); btT.setDisable(true); btZ.setDisable(true);
+			btC.setDisable(true); btI.setDisable(true); btO.setDisable(true); btU.setDisable(true);
+			btD.setDisable(true); btJ.setDisable(true); btP.setDisable(true); btV.setDisable(true); 
+			btE.setDisable(true); btK.setDisable(true); btQ.setDisable(true); btW.setDisable(true);
+			btF.setDisable(true); btL.setDisable(true); btR.setDisable(true); btX.setDisable(true);
+			
+			youWin = new Text(150, 350, "You have won!");
+			youWin.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 80));
+			youWin.setFill(Color.RED);
+			basePane.getChildren().addAll(youWin);
+			
+			gameWon++;
+			gamePlayed++;
+			
+			gamesWon.setText("Number of Games Won: " + gameWon);
+			gamesPlayed.setText("Number of Games Played: " + gamePlayed);
+			
+			if (gamePlayed >= 1) 
+			{
+				gamesWonPercentage.setText("Percentage of Games Won: " + ((gameWon / gamePlayed) * 100) + "%");
+			}
+			else if (gamePlayed <= 1)
+			{
+				gamesWonPercentage.setText("Percentage of Games Won: 0");
+			}
+		}
+		
+		wordOnScreen.setText("         Guess a letter in the word: " + wordDisplay);
+		leftBorderPane.setAlignment(Pos.BOTTOM_LEFT);
 			
 		wrongGuesses.setText("Number of Wrong Guess(es): " + guessCount);
-		wrongGuesses.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
-		basePane.getChildren().addAll(wrongGuesses);
-			
-		System.out.println("You are at " + guessCount + " wrong guess(es)");
+		leftBorderPane.setSpacing(200);
+		
+		/*Image loserImage = new Image("Loser.png");
+		//ImageView loseImage = new ImageView(loserImage);
+		rightBorderPane.getChildren().add(new ImageView(loserImage));*/
+		
+/*************************************HANGING THE MAN**********************************************/		
+		if (guessCount == 1)
+		{
+			base = new Line (500, 450, 850, 450);
+			base.setStrokeWidth(1);
+			base.setStroke(Color.BLACK);
+			basePane.getChildren().add(base);
+		}
+		
+		if (guessCount == 2)
+		{
+			pole = new Line(675, 450, 675, 50);
+			pole.setStrokeWidth(1);
+			pole.setStroke(Color.BLACK);
+			basePane.getChildren().add(pole);
+		}
+		
+		if(guessCount == 3)
+		{
+			beam = new Line(675, 50, 800, 50);
+			beam.setStrokeWidth(1);
+			beam.setStroke(Color.BLACK);
+			basePane.getChildren().add(beam);
+		}
+		
+		if (guessCount == 4)
+		{
+			rope = new Line(800, 50, 800, 100);
+			rope.setStrokeWidth(1);
+			rope.setStroke(Color.BLACK);
+			basePane.getChildren().add(rope);
+		}
+		
+		if (guessCount == 5)
+		{
+			head = new Circle();
+			head.setCenterX(800);
+			head.setCenterY(125);
+			head.setRadius(35);
+			head.setStroke(Color.BLACK);
+			head.setFill(Color.WHITE);
+			basePane.getChildren().add(head);
+		}
+		
+		if (guessCount == 6)
+		{
+			body = new Line(800, 160, 800, 350);
+			body.setStrokeWidth(1);
+			body.setStroke(Color.BLACK);
+			basePane.getChildren().add(body);
+		}
+		
+		if (guessCount == 7)
+		{
+			rightArm = new Line(800, 225, 865, 175);
+			rightArm.setStrokeWidth(1);
+			rightArm.setStroke(Color.BLACK);
+			basePane.getChildren().add(rightArm);
+		}
+		
+		if(guessCount == 8)
+		{
+			leftArm = new Line(735, 175, 800, 225);
+			leftArm.setStrokeWidth(1);
+			leftArm.setStroke(Color.BLACK);
+			basePane.getChildren().add(leftArm);
+		}
+		
+		if(guessCount == 9)
+		{
+			rightLeg = new Line(800, 350, 865, 400);
+			rightLeg.setStrokeWidth(1);
+			rightLeg.setStroke(Color.BLACK);
+			basePane.getChildren().add(rightLeg);
+		}	
+		if (guessCount == 10)
+		{
+			leftLeg = new Line(800, 350, 735, 400);
+			leftLeg.setStrokeWidth(1);
+			leftLeg.setStroke(Color.BLACK);
+			basePane.getChildren().add(leftLeg);
+		}
 	}
+	
 /********************************************************************BUTTONS DISPLAY*******************************************************************/
 	private HBox getHBox()
 		{
-			HBox buttons = new HBox(11);
-		
-			Button btA = new Button("A"); Button btG = new Button("G"); Button btM = new Button("M"); Button btS = new Button("S"); Button btY = new Button("Y");
-			Button btB = new Button("B"); Button btH = new Button("H"); Button btN = new Button("N"); Button btT = new Button("T"); Button btZ = new Button("Z");
-			Button btC = new Button("C"); Button btI = new Button("I"); Button btO = new Button("O"); Button btU = new Button("U");
-			Button btD = new Button("D"); Button btJ = new Button("J"); Button btP = new Button("P"); Button btV = new Button("V");
-			Button btE = new Button("E"); Button btK = new Button("K"); Button btQ = new Button("Q"); Button btW = new Button("W");
-			Button btF = new Button("F"); Button btL = new Button("L"); Button btR = new Button("R"); Button btX = new Button("X");
+			HBox buttons = new HBox(10);
 			
 			buttons.getChildren().addAll(btA, btB, btC, btD, btE, btF, btG, btH, btI, btJ, btK, btL, btM, btN, btO, btP, btQ, btR, btS, btT, btU,btV, btW, 
 					btX, btY, btZ);
 			buttons.setAlignment(Pos.CENTER);
 			
+			btA.setStyle("-fx-background-color: #ffffff"); btJ.setStyle("-fx-background-color: #ffffff"); btS.setStyle("-fx-background-color: #ffffff");
+			btB.setStyle("-fx-background-color: #ffffff"); btK.setStyle("-fx-background-color: #ffffff"); btT.setStyle("-fx-background-color: #ffffff");
+			btC.setStyle("-fx-background-color: #ffffff"); btL.setStyle("-fx-background-color: #ffffff"); btU.setStyle("-fx-background-color: #ffffff");
+			btD.setStyle("-fx-background-color: #ffffff"); btM.setStyle("-fx-background-color: #ffffff"); btV.setStyle("-fx-background-color: #ffffff");
+			btE.setStyle("-fx-background-color: #ffffff"); btN.setStyle("-fx-background-color: #ffffff"); btW.setStyle("-fx-background-color: #ffffff");
+			btF.setStyle("-fx-background-color: #ffffff"); btO.setStyle("-fx-background-color: #ffffff"); btX.setStyle("-fx-background-color: #ffffff");
+			btG.setStyle("-fx-background-color: #ffffff"); btP.setStyle("-fx-background-color: #ffffff"); btY.setStyle("-fx-background-color: #ffffff");
+			btH.setStyle("-fx-background-color: #ffffff"); btQ.setStyle("-fx-background-color: #ffffff"); btZ.setStyle("-fx-background-color: #ffffff");
+			btI.setStyle("-fx-background-color: #ffffff"); btR.setStyle("-fx-background-color: #ffffff");
+			
 			btA.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("A button is pressed");
 				handleButtonClick(e);
+				btA.setDisable(true);
 			});
 			btB.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("B button is pressed");
 				handleButtonClick(e);
+				btB.setDisable(true);
 			});
 			btC.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("C button is pressed");
 				handleButtonClick(e);
+				btC.setDisable(true);
 			});
 			btD.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("D button is pressed");
 				handleButtonClick(e);
+				btD.setDisable(true);
 			});
 			btE.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("E button is pressed");
 				handleButtonClick(e);
+				btE.setDisable(true);
 			});
 			btF.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("F button is pressed");
 				handleButtonClick(e);
 			});
 			btG.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("G button is pressed");
 				handleButtonClick(e);
 			});
 			btH.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("H button is pressed");
 				handleButtonClick(e);
 			});
 			btI.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("I button is pressed");
 				handleButtonClick(e);
 			});
 			btJ.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("J button is pressed");
 				handleButtonClick(e);
 			});
 			btK.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("K button is pressed");
 				handleButtonClick(e);
 			});
 			btL.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("L button is pressed");
 				handleButtonClick(e);
 			});
 			btM.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("M button is pressed");
 				handleButtonClick(e);
 			});
 			btN.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("N button is pressed");
 				handleButtonClick(e);
 			});
 			btO.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("O button is pressed");
 				handleButtonClick(e);
 			});
 			btP.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("P button is pressed");
 				handleButtonClick(e);
 			});
 			btQ.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("Q button is pressed");
 				handleButtonClick(e);
 			});
 			btR.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("R button is pressed");
 				handleButtonClick(e);
 			});
 			btS.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("S button is pressed");
 				handleButtonClick(e);
 			});
 			btT.setOnAction((ActionEvent e) ->
-			{
-				System.out.println("T button is pressed");
+			{;
+				handleButtonClick(e);
+			});
+			btU.setOnAction((ActionEvent e) ->
+			{;
 				handleButtonClick(e);
 			});
 			btV.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("V button is pressed");
 				handleButtonClick(e);
 			});
 			btW.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("W button is pressed");
 				handleButtonClick(e);
 			});
 			btX.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("X button is pressed");
 				handleButtonClick(e);
 			});
 			btY.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("Y button is pressed");
 				handleButtonClick(e);
 			});
 			btZ.setOnAction((ActionEvent e) ->
 			{
-				System.out.println("Z button is pressed");
 				handleButtonClick(e);
 			});
 			return buttons;
 		}
-	}
-/******************************************************HANGMAN BODY AND GALLOWS*************************************************************/
-class LinePane extends Pane
-{
-	public LinePane()
-	{
-		Line base = new Line (100, 450, -150, 450);
-		base.setStrokeWidth(1);
-		base.setStroke(Color.BLACK);
-		getChildren().add(base);
-		
-		Line pole = new Line(-25, 450, -25, 50);
-		pole.setStrokeWidth(1);
-		pole.setStroke(Color.BLUE);
-		getChildren().add(pole);
-		
-		Line beam = new Line(-25, 50, 150, 50);
-		beam.setStrokeWidth(1);
-		beam.setStroke(Color.GREEN);
-		getChildren().add(beam);
-		
-		Line rope = new Line(150, 50, 150, 100);
-		rope.setStrokeWidth(1);
-		rope.setStroke(Color.RED);
-		getChildren().add(rope);
-		
-		Circle head = new Circle();
-		head.setCenterX(150);
-		head.setCenterY(125);
-		head.setRadius(35);
-		head.setStroke(Color.BLACK);
-		head.setFill(Color.WHITE);
-		getChildren().add(head);
-		
-		Line body = new Line(150, 160, 150, 350);
-		body.setStrokeWidth(1);
-		body.setStroke(Color.PURPLE);
-		getChildren().add(body);
-		
-		Line rightarm = new Line(150, 225, 225, 175);
-		rightarm.setStrokeWidth(1);
-		rightarm.setStroke(Color.CYAN);
-		getChildren().add(rightarm);
-		
-		Line leftarm = new Line(150, 225, 75, 175);
-		leftarm.setStrokeWidth(1);
-		leftarm.setStroke(Color.MAGENTA);
-		getChildren().add(leftarm);
-		
-		Line rightleg = new Line(150, 350, 225, 400);
-		rightleg.setStrokeWidth(1);
-		rightleg.setStroke(Color.PINK);
-		getChildren().add(rightleg);
-		
-		Line leftleg = new Line(150, 350, 75, 400);
-		leftleg.setStrokeWidth(1);
-		leftleg.setStroke(Color.ORANGE);
-		getChildren().add(leftleg);
-	}
 }
