@@ -77,6 +77,8 @@ public class HangmanGUI extends Application
 	PathTransition winningImage;
 	double percentage;
 	DecimalFormat percentageFormat;
+	MediaPlayer winningPlayer;
+	MediaPlayer losingPlayer;
 	
 	/*Hardcoded all the buttons from A-Z*/
 	Button btA = new Button("A"); Button btG = new Button("G"); Button btM = new Button("M"); Button btS = new Button("S"); Button btY = new Button("Y");
@@ -200,6 +202,8 @@ public class HangmanGUI extends Application
 			wrongGuesses.setText("Number of Wrong Guess(es): " + guessCount);
 			
 			basePane.getChildren().removeAll(youLose, youWin, answer, base, pole, beam, rope, head, body, rightArm, leftArm, rightLeg, leftLeg, loseImage, winImage);
+			winningPlayer.stop();
+			losingPlayer.stop();
 			
 			btA.setDisable(false); btG.setDisable(false); btM.setDisable(false); btS.setDisable(false); btY.setDisable(false);
 			btB.setDisable(false); btH.setDisable(false); btN.setDisable(false); btT.setDisable(false); btZ.setDisable(false);
@@ -231,7 +235,8 @@ public class HangmanGUI extends Application
 	 * stops them from pushing the same button again. This method also handles wins and losses and disables all the alphabet buttons when the user guesses the
 	 * word or if they run hit 10 wrong guesses. Then whether the player wins or loses it takes the number of games played and increments it, if the player wins
 	 * then it increments the number of games won and displays both to the window. This also displays the new percentage to the window after the number of games
-	 * won and the number of games played have been incremented.*/
+	 * won and the number of games played have been incremented. This also adds different pictures for if you win or lose and plays a specific track of music
+	 * pertaining to whether the player has won or lost.*/
 	public void handleButtonClick(ActionEvent e)
 	{
 		buttonPressed = ((Button) e.getSource());
@@ -277,7 +282,7 @@ public class HangmanGUI extends Application
 				basePane.getChildren().add(loseImage);
 				
 				Media losingSound = new Media(new File("losingsound.wav").toURI().toString());
-				MediaPlayer losingPlayer = new MediaPlayer(losingSound);
+				losingPlayer = new MediaPlayer(losingSound);
 				losingPlayer.play();
 				
 				losingImage = new PathTransition(Duration.millis(1000), new Line(450, 700, 450, 125), loseImage);
@@ -326,10 +331,8 @@ public class HangmanGUI extends Application
 			winningImage.play();
 			
 			Media winningSound = new Media(new File("KoolTheGang-CelebrationRadio.wav").toURI().toString());
-			MediaPlayer winningPlayer = new MediaPlayer(winningSound);
-			
+			winningPlayer = new MediaPlayer(winningSound);
 			winningPlayer.play();
-			
 			
 			gameWon++;
 			gamePlayed++;
