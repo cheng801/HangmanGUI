@@ -1,10 +1,22 @@
+/*Randy Cheng
+ * May 1, 2019
+ * This is the game Hangman that displays to a screen with interactive buttons that allow you to click them and will replace the the asterisk in the word
+ * with the letter that was pressed. Gives the option to play the game again by pressing the play again button and allows you to quit the game and closes the
+ * window if the quit button is pressed. The program will display a message if the player wins and will display a message if the player loses. There is a 
+ * maximum of 10 incorrect guesses before the game ends and the man is hung.*/
+
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.text.DecimalFormat;
 import java.util.Scanner;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.scene.media.Media;
+import javafx.animation.PathTransition;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,12 +29,14 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.BorderPane;
 import javafx.event.ActionEvent;
 
 public class HangmanGUI extends Application
 {
+	/*Declared most of my variables before my start method so they can be accessed anywhere throughout the code*/
 	public static int guessCount = 0;
 	static double gameWon = 0;
 	static double gamePlayed = 0;
@@ -55,7 +69,16 @@ public class HangmanGUI extends Application
 	Line rightLeg;
 	Line leftLeg;
 	Circle head;
+	ImageView loseImage;
+	Image loserImage;
+	PathTransition losingImage;
+	ImageView winImage;
+	Image wonImage;
+	PathTransition winningImage;
+	double percentage;
+	DecimalFormat percentageFormat;
 	
+	/*Hardcoded all the buttons from A-Z*/
 	Button btA = new Button("A"); Button btG = new Button("G"); Button btM = new Button("M"); Button btS = new Button("S"); Button btY = new Button("Y");
 	Button btB = new Button("B"); Button btH = new Button("H"); Button btN = new Button("N"); Button btT = new Button("T"); Button btZ = new Button("Z");
 	Button btC = new Button("C"); Button btI = new Button("I"); Button btO = new Button("O"); Button btU = new Button("U"); Button quit = new Button("Quit");
@@ -65,7 +88,8 @@ public class HangmanGUI extends Application
 	
 	@Override
 	public void start(Stage primaryStage) throws FileNotFoundException
-	{	
+	{	/*Lines 75-96 opens a file from within the same workspace folder and checks if it exists, if it does it ends the program.
+	 	  It also counts how many strings are in the text file and puts each string into an array called words. */
 		java.io.File file = new java.io.File("hangman.txt");
 		if (!file.exists())
 		{
@@ -89,19 +113,24 @@ public class HangmanGUI extends Application
 		}
 		inputfile.close();
 		
+		/*The base pane is a borderpane that holds the rest of the other panes and any objects that were added to it.
+		 * I added a VBox to the left side of the borderpane and another Vbox to the right side of the borderpane.*/
 		basePane.setBottom(getHBox());
 		basePane.setLeft(leftBorderPane);
 		basePane.setRight(rightBorderPane);
 		
+		/*The Vbox named rightBorderPane sets the two buttons replay and quit to the right side of the border pane and spaces the buttons 5 pixels apart*/
 		rightBorderPane.getChildren().addAll(replay, quit);
 		rightBorderPane.setAlignment(Pos.TOP_RIGHT);
 		rightBorderPane.setSpacing(5);
 		
+		/*This is the code for the quit button which when clicked will exit the program and will close the window*/
 		quit.setOnAction((ActionEvent e) ->
 		{
 			System.exit(0);
 		});
 		
+		/*Lines 116-125 it picks a random word in the array of words and sets it to the string builder wordDisplay and changes it to a string for later use.*/
 		randomWord = (int)(Math.random() * words.length);
 		wordLength = words[randomWord].length();
 		words[randomWord] = words[randomWord].toUpperCase();
@@ -112,37 +141,48 @@ public class HangmanGUI extends Application
 		}
 		wordDisplay.toString();
 		
+		/*Lines 128-131 takes the word that was randomly chosen and displays it to the Vbox on the left side of the base border pane*/
 		wordOnScreen = new Text(200, 200, "         Guess a letter in the word: " + wordDisplay);
 		wordOnScreen.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
 		leftBorderPane.getChildren().addAll(wordOnScreen);
 		leftBorderPane.setAlignment(Pos.BOTTOM_LEFT);
 		
+		/*Lines 134-137 tells the player how many wrong guesses they have and adds it to the Vbox on the left side of the border pane*/
 		wrongGuesses = new Text(20, 450, "Number of Wrong Guess(es): " + guessCount);
 		wrongGuesses.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
 		leftBorderPane.getChildren().addAll(wrongGuesses);
 		leftBorderPane.setSpacing(200);
 		
+		/*Lines 140-142 counts the number of games played, both won and lost games and displays it to the pane*/
 		gamesPlayed = new Text(10, 40, "Number of Games Played: " + gamePlayed);
 		gamesPlayed.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
 		basePane.getChildren().addAll(gamesPlayed);
 
+		/*Lines 145-147 counts the number of times that the player has won the game and adds it to the base pane*/
 		gamesWon = new Text(10, 65, "Number of Games Won: " + gameWon);
 		gamesWon.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
 		basePane.getChildren().addAll(gamesWon);
 		
+		/*Lines 150-161 Gives calculates the percentage but takes into the first time played so it does not divide by zero when there is at least 
+		 * 1 game played it will display the percentage of wins. If there are no games played then it will only display a 0.*/
 		if (gamePlayed >= 1) 
 		{
-			gamesWonPercentage = new Text(10, 15, "Percentage of Games Won: " + (gameWon / gamePlayed));
+			percentage = (gameWon / gamePlayed)*100;
+			percentageFormat = new DecimalFormat("#.00");
+			gamesWonPercentage.setText("Percentage of Games Won: " + (percentageFormat.format((percentage)) + "%"));;
 			gamesWonPercentage.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
 			basePane.getChildren().addAll(gamesWonPercentage);
 		}
 		else if (gamePlayed <= 1)
 		{
-			gamesWonPercentage = new Text(10, 15, "Percentage of Games Won: 0");
+			gamesWonPercentage = new Text(10, 15, "Percentage of Games Won: 0%");
 			gamesWonPercentage.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 15));
 			basePane.getChildren().addAll(gamesWonPercentage);
 		}
 		
+		/*Lines 168-203 Gives the player the option to play the game again and this removes the win/lost texts from the pane, resets the number of guesses,
+		 * picks a new random word from the array, and displays that again. It also activates all the buttons that were previously disabled and colors of the
+		 * buttons are reset to the white color that the gui originally started with.*/
 		replay.setOnAction((ActionEvent e) ->
 		{
 			guessCount = 0;
@@ -159,8 +199,7 @@ public class HangmanGUI extends Application
 			wordOnScreen.setText("         Guess a letter in the word: " + wordDisplay);
 			wrongGuesses.setText("Number of Wrong Guess(es): " + guessCount);
 			
-			basePane.getChildren().removeAll(youLose, youWin, answer);
-			basePane.getChildren().removeAll(base, pole, beam, rope, head, body, rightArm, leftArm, rightLeg, leftLeg);
+			basePane.getChildren().removeAll(youLose, youWin, answer, base, pole, beam, rope, head, body, rightArm, leftArm, rightLeg, leftLeg, loseImage, winImage);
 			
 			btA.setDisable(false); btG.setDisable(false); btM.setDisable(false); btS.setDisable(false); btY.setDisable(false);
 			btB.setDisable(false); btH.setDisable(false); btN.setDisable(false); btT.setDisable(false); btZ.setDisable(false);
@@ -180,12 +219,19 @@ public class HangmanGUI extends Application
 			btI.setStyle("-fx-background-color: #ffffff"); btR.setStyle("-fx-background-color: #ffffff");
 		});
 		
+		/*Lines 208-211 makes the window and sets it to a size of 900 x 500, sets the title of the window to the name Hangman and shows the window.*/
 		Scene scene = new Scene(basePane, 900, 500);
 		primaryStage.setTitle("Hangman");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
-	
+	/*Lines 213-292 is the method that handles alphabet buttons. It first takes the string in the button and changes it to a char and compares it to each
+	 * char in the word to see if any matches. If any of the letters match then it replaces the letter in the word and prints out a new word with the letter
+	 * replacing the asterisk. Then after replacing the letter with the asterisk it disables the button so the user knows which buttons they have pushed and
+	 * stops them from pushing the same button again. This method also handles wins and losses and disables all the alphabet buttons when the user guesses the
+	 * word or if they run hit 10 wrong guesses. Then whether the player wins or loses it takes the number of games played and increments it, if the player wins
+	 * then it increments the number of games won and displays both to the window. This also displays the new percentage to the window after the number of games
+	 * won and the number of games played have been incremented.*/
 	public void handleButtonClick(ActionEvent e)
 	{
 		buttonPressed = ((Button) e.getSource());
@@ -215,24 +261,41 @@ public class HangmanGUI extends Application
 				btE.setDisable(true); btK.setDisable(true); btQ.setDisable(true); btW.setDisable(true);
 				btF.setDisable(true); btL.setDisable(true); btR.setDisable(true); btX.setDisable(true);
 				
-				youLose = new Text(30, 300, "You have lost!");
-				youLose.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 50));
+				youLose = new Text(30, 300, " Life is hard; it’s harder if you’re stupid. YOU LOST!");
+				youLose.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 30));
+				youLose.setWrappingWidth(500);
 				
-				answer = new Text(50, 350, "This was the word: " + words[randomWord]);
+				answer = new Text(300, 400, "This was the word: " + words[randomWord]);
 				answer.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 20));
-				youLose.setFill(Color.SKYBLUE);
+				youLose.setFill(Color.RED);
 				basePane.getChildren().addAll(youLose, answer);
+				
+				loserImage = new Image(new File("Loser.png").toURI().toString());
+				loseImage = new ImageView(loserImage);
+				loseImage.setFitWidth(250);
+				loseImage.setFitHeight(250);
+				basePane.getChildren().add(loseImage);
+				
+				Media losingSound = new Media(new File("losingsound.wav").toURI().toString());
+				MediaPlayer losingPlayer = new MediaPlayer(losingSound);
+				losingPlayer.play();
+				
+				losingImage = new PathTransition(Duration.millis(1000), new Line(450, 700, 450, 125), loseImage);
+				losingImage.setCycleCount(1);
+				losingImage.play();
 				
 				gamePlayed++;
 				gamesPlayed.setText("Number of Games Played: " + gamePlayed);
 				
-				if (gamePlayed >= 1) 
+				if (gamePlayed >= 1)
 				{
-					gamesWonPercentage.setText("Percentage of Games Won: " + (gameWon / gamePlayed) * 100 + "%");
+					percentage = (gameWon / gamePlayed)*100;
+					percentageFormat = new DecimalFormat("#.00");
+					gamesWonPercentage.setText("Percentage of Games Won: " + (percentageFormat.format((percentage)) + "%"));
 				}
 				else if (gamePlayed <= 1)
 				{
-					gamesWonPercentage.setText("Percentage of Games Won: 0");
+					gamesWonPercentage.setText("Percentage of Games Won: 0%");
 				}
 			}
 		}
@@ -246,10 +309,27 @@ public class HangmanGUI extends Application
 			btE.setDisable(true); btK.setDisable(true); btQ.setDisable(true); btW.setDisable(true);
 			btF.setDisable(true); btL.setDisable(true); btR.setDisable(true); btX.setDisable(true);
 			
-			youWin = new Text(150, 350, "You have won!");
-			youWin.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 80));
-			youWin.setFill(Color.RED);
+			youWin = new Text(30, 300, "The difference between stupidity and genius is that genius has its limits. YOU WON!");
+			youWin.setFont(Font.font("Segoe Print", FontWeight.BOLD, FontPosture.ITALIC, 30));
+			youWin.setWrappingWidth(500);
+			youWin.setFill(Color.BLUE);
 			basePane.getChildren().addAll(youWin);
+			
+			wonImage = new Image(new File("wins.png").toURI().toString());
+			winImage = new ImageView(wonImage);
+			winImage.setFitWidth(250);
+			winImage.setFitHeight(250);
+			basePane.getChildren().add(winImage);
+			
+			winningImage = new PathTransition(Duration.millis(1000), new Line(450, 700, 450, 125), winImage);
+			winningImage.setCycleCount(1);
+			winningImage.play();
+			
+			Media winningSound = new Media(new File("KoolTheGang-CelebrationRadio.wav").toURI().toString());
+			MediaPlayer winningPlayer = new MediaPlayer(winningSound);
+			
+			winningPlayer.play();
+			
 			
 			gameWon++;
 			gamePlayed++;
@@ -259,25 +339,26 @@ public class HangmanGUI extends Application
 			
 			if (gamePlayed >= 1) 
 			{
-				gamesWonPercentage.setText("Percentage of Games Won: " + ((gameWon / gamePlayed) * 100) + "%");
+				percentage = (gameWon / gamePlayed)*100;
+				percentageFormat = new DecimalFormat("#.00");
+				gamesWonPercentage.setText("Percentage of Games Won: " + (percentageFormat.format((percentage)) + "%"));
 			}
 			else if (gamePlayed <= 1)
 			{
-				gamesWonPercentage.setText("Percentage of Games Won: 0");
+				gamesWonPercentage.setText("Percentage of Games Won: 0%");
 			}
 		}
 		
 		wordOnScreen.setText("         Guess a letter in the word: " + wordDisplay);
 		leftBorderPane.setAlignment(Pos.BOTTOM_LEFT);
-			
 		wrongGuesses.setText("Number of Wrong Guess(es): " + guessCount);
 		leftBorderPane.setSpacing(200);
 		
-		/*Image loserImage = new Image("Loser.png");
-		//ImageView loseImage = new ImageView(loserImage);
-		rightBorderPane.getChildren().add(new ImageView(loserImage));*/
-		
-/*************************************HANGING THE MAN**********************************************/		
+/*************************************HANGING THE MAN**********************************************/
+		/*Lines 312-393 is the drawing of the hangman and the gallows. Each line is set to a number and when that number is hit the line displays. The number
+		 * increments only when the player guesses a wrong letter.*/
+	if(!found)
+	{
 		if (guessCount == 1)
 		{
 			base = new Line (500, 450, 850, 450);
@@ -360,8 +441,13 @@ public class HangmanGUI extends Application
 			basePane.getChildren().add(leftLeg);
 		}
 	}
+	}
 	
 /********************************************************************BUTTONS DISPLAY*******************************************************************/
+	/*Lines 398-526 Creates the A-Z buttons and adds them to the HBox at the bottom of the border pane. It also sets the start color of each button to a shade
+	 * of white so when the program resets it has a base color that it can be reset to other than the default button color. Then each button has a lambda 
+	 * expression and handles the event of each button being clicked and calls the method handleButtonClicked in the previous to handle extra actions when the
+	 * button is clicked in the window. Then returns all the buttons when they are called upon in the start method.*/
 	private HBox getHBox()
 		{
 			HBox buttons = new HBox(10);
